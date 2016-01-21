@@ -249,13 +249,22 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
         if (holder.isCreating() && checkCameraDevice()) {
 //            2.2、配置 Camera
             Camera.Parameters parameters = mCamera.getParameters();
-            //获得支持的分辨率
+            //获得支持的图片分辨率
             List<Camera.Size> vSizeList = parameters.getSupportedPictureSizes();
             for (int num = 0; num < vSizeList.size(); num++) {
                 Camera.Size vSize = vSizeList.get(num);
                 Log.e(TAG, vSize.width + " - " + vSize.height);
                 if (vSize.width <= 1280){
                     parameters.setPictureSize(vSize.width, vSize.height);
+                    break;
+                }
+            }
+            //获得支持的预览分辨率
+            List<Camera.Size> sizeList = parameters.getSupportedPreviewSizes();
+            for (int num = 0; num < sizeList.size(); num++) {
+                Camera.Size vSize = sizeList.get(num);
+                Log.e(TAG, vSize.width + " - " + vSize.height);
+                if (vSize.width <= 1280){
                     parameters.setPreviewSize(vSize.width, vSize.height);
                     break;
                 }
