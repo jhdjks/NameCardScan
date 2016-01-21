@@ -371,12 +371,12 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
                     final ObjectAnimator animator = ObjectAnimator.ofFloat(line1, "translationY", 0, mSurfaceView.getMeasuredHeight());
                     animator.setDuration(4000);
                     animator.setInterpolator(new LinearInterpolator());
-                    animator.setRepeatCount(Integer.MAX_VALUE);
+                    animator.setRepeatCount(ObjectAnimator.INFINITE);
                     animator.start();
                     final ObjectAnimator animator2 = ObjectAnimator.ofFloat(line2, "translationY", 0, -mSurfaceView.getMeasuredHeight());
                     animator2.setDuration(4000);
                     animator2.setInterpolator(new LinearInterpolator());
-                    animator2.setRepeatCount(Integer.MAX_VALUE);
+                    animator2.setRepeatCount(ObjectAnimator.INFINITE);
                     animator2.start();
                 }
                 Log.e(TAG, "开始进行预览");
