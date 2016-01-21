@@ -1,5 +1,7 @@
 package com.yangchao.namecardscanner.activity;
 
+import android.animation.Animator;
+import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -20,6 +22,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.LinearInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -125,6 +128,7 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
     private Camera mCamera;
     private ImageView mImageView;
     private TextView mFlash;
+    private View line1, line2;
 
     /**
      * 跳转到本界面
@@ -214,13 +218,13 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
         mFlash.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isPreviewing.get()){
-                    if (isOpenFlash.compareAndSet(false, true)){
+                if (isPreviewing.get()) {
+                    if (isOpenFlash.compareAndSet(false, true)) {
                         Camera.Parameters p = mCamera.getParameters();
                         p.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
                         mCamera.setParameters(p);
                         mFlash.setText("关灯");
-                    }else{
+                    } else {
                         Camera.Parameters p = mCamera.getParameters();
                         p.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
                         mCamera.setParameters(p);
@@ -239,6 +243,16 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
         mSurfaceView.getHolder().addCallback(this);
 //        1.2、设置从缓冲区读取数据，配合Camera
         mSurfaceView.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+
+        line1 = findViewById(R.id.line_1);
+        line1.setVisibility(View.GONE);
+        line2 = findViewById(R.id.line_2);
+        line2.setVisibility(View.GONE);
+        if (mScanMode == SCAN_MODE_PREVIEW){
+            line1.setVisibility(View.VISIBLE);
+            line2.setVisibility(View.VISIBLE);
+        }
+
 
     }
 
@@ -353,6 +367,18 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
             //如果没有预览，则开始预览
             if (isPreviewing.compareAndSet(false, true)) {
                 mCamera.startPreview();
+                if (mScanMode == SCAN_MODE_PREVIEW){
+                    final ObjectAnimator animator = ObjectAnimator.ofFloat(line1, "translationY", 0, mSurfaceView.getMeasuredHeight());
+                    animator.setDuration(4000);
+                    animator.setInterpolator(new LinearInterpolator());
+                    animator.setRepeatCount(Integer.MAX_VALUE);
+                    animator.start();
+                    final ObjectAnimator animator2 = ObjectAnimator.ofFloat(line2, "translationY", 0, -mSurfaceView.getMeasuredHeight());
+                    animator2.setDuration(4000);
+                    animator2.setInterpolator(new LinearInterpolator());
+                    animator2.setRepeatCount(Integer.MAX_VALUE);
+                    animator2.start();
+                }
                 Log.e(TAG, "开始进行预览");
             } else {
                 Log.e(TAG, "警告：预览在之前已经被开启");
@@ -526,6 +552,10 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
                     mCamera = null;
                 }
             });
+        }
+        isOpenFlash.set(false);
+        if (mFlash != null){
+            mFlash.setText("开灯");
         }
     }
 
