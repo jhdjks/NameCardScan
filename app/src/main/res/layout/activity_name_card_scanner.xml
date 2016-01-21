@@ -41,4 +41,23 @@
         android:background="#80ffffff"
         />
 
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="16dp"
+        >
+        <TextView
+            android:id="@+id/flash"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="开灯"
+            android:textColor="#fff"
+            android:textSize="16sp"
+            android:padding="16dp"
+            android:background="#40000000"
+            />
+    </LinearLayout>
+
 </RelativeLayout>

@@ -101,6 +101,10 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
      * 是否已经正在拍照
      */
     private AtomicBoolean isTaking = new AtomicBoolean(false);
+    /**
+     * 是否打开闪关灯
+     */
+    private AtomicBoolean isOpenFlash = new AtomicBoolean(false);
 
 
     /**
@@ -120,6 +124,7 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
 
     private Camera mCamera;
     private ImageView mImageView;
+    private TextView mFlash;
 
     /**
      * 跳转到本界面
@@ -205,6 +210,27 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
             mImageView.setVisibility(View.GONE);
         }
 
+        mFlash = (TextView) findViewById(R.id.flash);
+        mFlash.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isPreviewing.get()){
+                    if (isOpenFlash.compareAndSet(false, true)){
+                        Camera.Parameters p = mCamera.getParameters();
+                        p.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+                        mCamera.setParameters(p);
+                        mFlash.setText("关灯");
+                    }else{
+                        Camera.Parameters p = mCamera.getParameters();
+                        p.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+                        mCamera.setParameters(p);
+                        mFlash.setText("开灯");
+                        isOpenFlash.set(false);
+                    }
+                }
+            }
+        });
+
         /**
          * 1、使用SurfaceView预览手机拍到的图像
          */
@@ -288,6 +314,9 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
 //            parameters.setPictureFormat(PixelFormat.JPEG);
             //设置预览编码
 //            parameters.setPreviewFormat(PixelFormat.YCbCr_420_SP);
+
+            //设置闪关灯
+            parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
 
             //设置参数
             mCamera.setParameters(parameters);
