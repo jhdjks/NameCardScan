@@ -2,9 +2,12 @@ package com.yangchao.namecardscanner.activity;
 
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
+import android.content.ContentProvider;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
@@ -12,9 +15,11 @@ import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -29,8 +34,14 @@ import android.widget.Toast;
 
 import com.yangchao.namecardscanner.R;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -62,13 +73,17 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
      * 边预览边扫描
      */
     public static final int SCAN_MODE_PREVIEW = 1;
-
     /**
      * 扫描模式
      * 0 拍图模式
      * 1 预览模式
      */
     private int mScanMode;
+
+    /**
+     * 选择图片的requestCode
+     */
+    private static final int GET_JPEG_REQUEST_CODE = 0;
 
     /**
      * 扫描沉睡间隔
@@ -127,7 +142,7 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
 
     private Camera mCamera;
     private ImageView mImageView;
-    private TextView mFlash;
+    private TextView mFlash, mFile;
     private View line1, line2;
 
     /**
@@ -234,6 +249,15 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
                 }
             }
         });
+        mFile = (TextView) findViewById(R.id.file);
+        mFile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.setType("image/jpeg");
+                startActivityForResult(intent, GET_JPEG_REQUEST_CODE);
+            }
+        });
 
         /**
          * 1、使用SurfaceView预览手机拍到的图像
@@ -254,6 +278,34 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
         }
 
 
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == GET_JPEG_REQUEST_CODE && resultCode == RESULT_OK){
+            if (data != null){
+                try {
+                    ContentResolver resolver = getContentResolver();
+                    Uri originalUri = data.getData();   //获得图片的uri
+                    //得到bitmap图片，注意这里有可能用户选择的不是图片
+                    Bitmap bm = MediaStore.Images.Media.getBitmap(resolver, originalUri);
+                    if (bm != null){
+                        ByteArrayOutputStream o = new ByteArrayOutputStream();
+                        bm.compress(Bitmap.CompressFormat.JPEG, 100, o);
+                        if (o != null){
+                            doTakePictureDecode(o.toByteArray(), 0);
+                            o.close();
+                            bm.recycle();
+                            return;
+                        }
+                    }
+                }catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            showToast("不识别的图片格式");
+        }
     }
 
     /**
@@ -444,7 +496,7 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
                         }, null, new Camera.PictureCallback() {
                             @Override
                             public void onPictureTaken(byte[] data, Camera camera) {
-                                doTakePictureDecode(data);
+                                doTakePictureDecode(data, 90);
                                 try {
                                     mCamera.startPreview();
                                 } catch (Exception e){
@@ -468,18 +520,20 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
         }
     }
 
-    private void doTakePictureDecode(final byte[] data) {
+    private void doTakePictureDecode(final byte[] data, final int degree) {
         AsyncTask<Void, Void, OCRItems> task = new AsyncTask<Void, Void, OCRItems>() {
             @Override
             protected OCRItems doInBackground(Void... params) {
-                Bitmap bmp = BitmapFactory.decodeByteArray(data, 0, data.length);
-                final Bitmap bitmap = rotateBitmapByDegree(bmp, 90);
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        mImageView.setImageBitmap(bitmap);
-                    }
-                });
+                if (mScanMode == SCAN_MODE_PICTURE){
+                    Bitmap bmp = BitmapFactory.decodeByteArray(data, 0, data.length);
+                    final Bitmap bitmap = rotateBitmapByDegree(bmp, degree);
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            mImageView.setImageBitmap(bitmap);
+                        }
+                    });
+                }
                 return new OCRManager().rec(data);
             }
 
@@ -488,7 +542,7 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
                 super.onPostExecute(ocrItems);
                 if (isReleased.get()) return;
                 if (ocrItems == null){
-                    showToast("解码失败，请重新拍照");
+                    showToast("解码失败，请重试");
                 }else{
                     showToast(ocrItems.toString());
                 }
