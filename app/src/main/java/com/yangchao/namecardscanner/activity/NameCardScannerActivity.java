@@ -1,13 +1,10 @@
 package com.yangchao.namecardscanner.activity;
 
-import android.animation.Animator;
 import android.animation.ObjectAnimator;
-import android.content.ContentProvider;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
@@ -34,14 +31,8 @@ import android.widget.Toast;
 
 import com.yangchao.namecardscanner.R;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -50,7 +41,7 @@ import cn.sharp.android.ncr.ocr.OCRManager;
 
 /**
  * 扫描名片界面
- *
+ * <p/>
  * Created by yc on 2016-1-20
  */
 public class NameCardScannerActivity extends AppCompatActivity implements SurfaceHolder.Callback {
@@ -158,7 +149,7 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
     /**
      * 将图片按照某个角度进行旋转
      *
-     * @param bm 需要旋转的图片
+     * @param bm     需要旋转的图片
      * @param degree 旋转角度
      * @return 旋转后的图片
      */
@@ -185,9 +176,9 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (savedInstanceState != null){
+        if (savedInstanceState != null) {
             mScanMode = savedInstanceState.getInt(KEY_SCAN_MODE);
-        }else{
+        } else {
             mScanMode = getIntent().getIntExtra(KEY_SCAN_MODE, SCAN_MODE_PICTURE);
         }
 
@@ -215,7 +206,7 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
 
         mTake = (TextView) findViewById(R.id.take);
         mImageView = (ImageView) findViewById(R.id.imageView);
-        if (mScanMode == SCAN_MODE_PICTURE){
+        if (mScanMode == SCAN_MODE_PICTURE) {
             mTake.setVisibility(View.VISIBLE);
             mImageView.setVisibility(View.VISIBLE);
             mTake.setOnClickListener(new View.OnClickListener() {
@@ -224,7 +215,7 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
                     doTakePicture();
                 }
             });
-        }else{
+        } else {
             mTake.setVisibility(View.GONE);
             mImageView.setVisibility(View.GONE);
         }
@@ -272,7 +263,7 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
         line1.setVisibility(View.GONE);
         line2 = findViewById(R.id.line_2);
         line2.setVisibility(View.GONE);
-        if (mScanMode == SCAN_MODE_PREVIEW){
+        if (mScanMode == SCAN_MODE_PREVIEW) {
             line1.setVisibility(View.VISIBLE);
             line2.setVisibility(View.VISIBLE);
         }
@@ -283,24 +274,24 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == GET_JPEG_REQUEST_CODE && resultCode == RESULT_OK){
-            if (data != null){
+        if (requestCode == GET_JPEG_REQUEST_CODE && resultCode == RESULT_OK) {
+            if (data != null) {
                 try {
                     ContentResolver resolver = getContentResolver();
                     Uri originalUri = data.getData();   //获得图片的uri
                     //得到bitmap图片，注意这里有可能用户选择的不是图片
                     Bitmap bm = MediaStore.Images.Media.getBitmap(resolver, originalUri);
-                    if (bm != null){
+                    if (bm != null) {
                         ByteArrayOutputStream o = new ByteArrayOutputStream();
                         bm.compress(Bitmap.CompressFormat.JPEG, 100, o);
-                        if (o != null){
+                        if (o != null) {
                             doTakePictureDecode(o.toByteArray(), 0);
                             o.close();
                             bm.recycle();
                             return;
                         }
                     }
-                }catch (Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -309,7 +300,6 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
     }
 
     /**
-     *
      * 检查并获取 Camera 实例
      *
      * @return 是否获取了 Camera 实例
@@ -346,7 +336,7 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
             for (int num = 0; num < vSizeList.size(); num++) {
                 Camera.Size vSize = vSizeList.get(num);
                 Log.e(TAG, vSize.width + " - " + vSize.height);
-                if (vSize.width <= 1280){
+                if (vSize.width <= 1280) {
                     parameters.setPictureSize(vSize.width, vSize.height);
                     break;
                 }
@@ -356,7 +346,7 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
             for (int num = 0; num < sizeList.size(); num++) {
                 Camera.Size vSize = sizeList.get(num);
                 Log.e(TAG, vSize.width + " - " + vSize.height);
-                if (vSize.width <= 1280){
+                if (vSize.width <= 1280) {
                     parameters.setPreviewSize(vSize.width, vSize.height);
                     break;
                 }
@@ -388,7 +378,7 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
             mCamera.setParameters(parameters);
 
             //如果是预览模式,添加预览回调
-            if (mScanMode == SCAN_MODE_PREVIEW){
+            if (mScanMode == SCAN_MODE_PREVIEW) {
                 mCamera.setPreviewCallback(new MyPreviewCallback());
             }
             //设置预览，将帧数据给 SurfaceView 显示
@@ -415,11 +405,11 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
      * 开始预览
      */
     private void startPreview() {
-        if (checkCameraDevice()){
+        if (checkCameraDevice()) {
             //如果没有预览，则开始预览
             if (isPreviewing.compareAndSet(false, true)) {
                 mCamera.startPreview();
-                if (mScanMode == SCAN_MODE_PREVIEW){
+                if (mScanMode == SCAN_MODE_PREVIEW) {
                     final ObjectAnimator animator = ObjectAnimator.ofFloat(line1, "translationY", 0, mSurfaceView.getMeasuredHeight());
                     animator.setDuration(4000);
                     animator.setInterpolator(new LinearInterpolator());
@@ -445,13 +435,13 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
      */
     private void startAutoFocus() {
         //初始化自动对焦回调
-        if (mAutoFocusCallback == null){
+        if (mAutoFocusCallback == null) {
             mAutoFocusCallback = new Camera.AutoFocusCallback() {
                 @Override
                 public void onAutoFocus(boolean success, Camera camera) {
                     Log.e(TAG, "自动聚焦：" + success);
-                    if (success){
-                        if (mScanMode == SCAN_MODE_PREVIEW){
+                    if (success) {
+                        if (mScanMode == SCAN_MODE_PREVIEW) {
                             doDecode();
                         }
                     }
@@ -459,11 +449,12 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
             };
         }
         //开启自动对焦任务
-        if (isPreviewing.get()){
-            if (isScanning.compareAndSet(false, true)){
+        if (isPreviewing.get()) {
+            if (isScanning.compareAndSet(false, true)) {
                 Log.e(TAG, "开始进行自动对焦任务");
-                new Thread(mAutoFocusRunnable){}.start();
-            }else{
+                new Thread(mAutoFocusRunnable) {
+                }.start();
+            } else {
                 Log.e(TAG, "警告：自动对焦任务在之前已经被开启");
             }
         }
@@ -480,13 +471,13 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
         if (!isScanning.get()) return;
 
         //如果没有在拍照
-        if (isTaking.compareAndSet(false, true)){
+        if (isTaking.compareAndSet(false, true)) {
             Log.e(TAG, "正在拍照");
             //初始化自动对焦回调
             Camera.AutoFocusCallback autoFocusCallback = new Camera.AutoFocusCallback() {
                 @Override
                 public void onAutoFocus(boolean success, Camera camera) {
-                    if (success){  //对焦成功
+                    if (success) {  //对焦成功
                         //进行拍照
                         mCamera.takePicture(new Camera.ShutterCallback() {
                             @Override
@@ -499,12 +490,12 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
                                 doTakePictureDecode(data, 90);
                                 try {
                                     mCamera.startPreview();
-                                } catch (Exception e){
+                                } catch (Exception e) {
                                     e.printStackTrace();
                                 }
                             }
                         });
-                    }else{
+                    } else {
                         //失败
                         isTaking.set(false);
                     }
@@ -524,7 +515,7 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
         AsyncTask<Void, Void, OCRItems> task = new AsyncTask<Void, Void, OCRItems>() {
             @Override
             protected OCRItems doInBackground(Void... params) {
-                if (mScanMode == SCAN_MODE_PICTURE){
+                if (mScanMode == SCAN_MODE_PICTURE) {
                     Bitmap bmp = BitmapFactory.decodeByteArray(data, 0, data.length);
                     final Bitmap bitmap = rotateBitmapByDegree(bmp, degree);
                     handler.post(new Runnable() {
@@ -541,9 +532,9 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
             protected void onPostExecute(OCRItems ocrItems) {
                 super.onPostExecute(ocrItems);
                 if (isReleased.get()) return;
-                if (ocrItems == null){
+                if (ocrItems == null) {
                     showToast("解码失败，请重试");
-                }else{
+                } else {
                     showToast(ocrItems.toString());
                 }
                 isTaking.set(false);
@@ -563,7 +554,7 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
                 int height = mCamera.getParameters().getPreviewSize().height;
                 YuvImage image = new YuvImage(mPreviewData, ImageFormat.NV21, width, height, null);
                 ByteArrayOutputStream os = new ByteArrayOutputStream(NameCardScannerActivity.this.mPreviewData.length);
-                if(!image.compressToJpeg(new Rect(0, 0, width, height), 100, os)){
+                if (!image.compressToJpeg(new Rect(0, 0, width, height), 100, os)) {
                     return null;
                 }
                 byte[] tmp = os.toByteArray();
@@ -582,7 +573,7 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
                 super.onPostExecute(ocrItems);
                 isDecoding.set(false);
                 if (isReleased.get()) return;
-                if (ocrItems != null){
+                if (ocrItems != null) {
                     showToast(ocrItems.toString());
                 }
             }
@@ -592,7 +583,7 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-        if (mCamera != null){
+        if (mCamera != null) {
             mCamera.setPreviewCallback(null);
             mCamera.stopPreview();
             isScanning.set(false);
@@ -608,7 +599,7 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
             });
         }
         isOpenFlash.set(false);
-        if (mFlash != null){
+        if (mFlash != null) {
             mFlash.setText("开灯");
         }
     }
@@ -619,14 +610,14 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
     private Runnable mAutoFocusRunnable = new Runnable() {
         @Override
         public void run() {
-            while (isScanning.get()){
+            while (isScanning.get()) {
                 try {
                     Thread.sleep(SCANNER_SLEEP_TIME);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                if (mCamera != null && isScanning.get() && !isTaking.get()){
-                    if (!isReleased.get() && isPreviewing.get() && !isTaking.get()){  //如果没有释放,没有拍照,并且正在预览
+                if (mCamera != null && isScanning.get() && !isTaking.get()) {
+                    if (!isReleased.get() && isPreviewing.get() && !isTaking.get()) {  //如果没有释放,没有拍照,并且正在预览
                         //释放自动对焦
                         mCamera.cancelAutoFocus();
                         //进行自动对焦，
@@ -644,11 +635,11 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
     /**
      * 获得预览帧的回调
      */
-    private class MyPreviewCallback implements Camera.PreviewCallback{
+    private class MyPreviewCallback implements Camera.PreviewCallback {
 
         @Override
         public void onPreviewFrame(byte[] data, Camera camera) {
-            if (mCamera != null && isPreviewing.get() && !isReleased.get()){
+            if (mCamera != null && isPreviewing.get() && !isReleased.get()) {
                 mPreviewData = data;
             }
         }
