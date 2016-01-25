@@ -245,7 +245,7 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.setType("image/jpeg");
+                intent.setType("image/*");
                 startActivityForResult(intent, GET_JPEG_REQUEST_CODE);
             }
         });
