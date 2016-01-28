@@ -79,7 +79,7 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
     /**
      * 扫描沉睡间隔
      */
-    private static final long SCANNER_SLEEP_TIME = 3000;
+    private static final long SCANNER_SLEEP_TIME = 4000;
 
     /**
      * 屏幕宽度
@@ -501,13 +501,7 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
                     }
                 }
             };
-            //进行一次对焦
-            mCamera.cancelAutoFocus();
-            try {
-                mCamera.autoFocus(autoFocusCallback);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            doAutoFocus(autoFocusCallback);
         }
     }
 
@@ -611,26 +605,35 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
         @Override
         public void run() {
             while (isScanning.get()) {
+                if (mCamera != null && isScanning.get() && !isTaking.get()) {
+                    if (!isReleased.get() && isPreviewing.get() && !isTaking.get()) {  //如果没有释放,没有拍照,并且正在预览
+                        doAutoFocus(mAutoFocusCallback);
+                    }
+                }
                 try {
                     Thread.sleep(SCANNER_SLEEP_TIME);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                if (mCamera != null && isScanning.get() && !isTaking.get()) {
-                    if (!isReleased.get() && isPreviewing.get() && !isTaking.get()) {  //如果没有释放,没有拍照,并且正在预览
-                        //释放自动对焦
-                        mCamera.cancelAutoFocus();
-                        //进行自动对焦，
-                        try {
-                            mCamera.autoFocus(mAutoFocusCallback);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
             }
         }
     };
+
+    private void doAutoFocus(final Camera.AutoFocusCallback autoFocusCallback) {
+        //释放自动对焦
+        mCamera.cancelAutoFocus();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                //进行自动对焦，
+                try {
+                    mCamera.autoFocus(autoFocusCallback);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }, 1000);
+    }
 
     /**
      * 获得预览帧的回调
