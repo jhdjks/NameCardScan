@@ -276,23 +276,32 @@ public class NameCardScannerActivity extends AppCompatActivity implements Surfac
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == GET_JPEG_REQUEST_CODE && resultCode == RESULT_OK) {
             if (data != null) {
+                Bitmap bm = null;
+                ByteArrayOutputStream o = null;
                 try {
                     ContentResolver resolver = getContentResolver();
                     Uri originalUri = data.getData();   //获得图片的uri
                     //得到bitmap图片，注意这里有可能用户选择的不是图片
-                    Bitmap bm = MediaStore.Images.Media.getBitmap(resolver, originalUri);
+                    bm = MediaStore.Images.Media.getBitmap(resolver, originalUri);
                     if (bm != null) {
-                        ByteArrayOutputStream o = new ByteArrayOutputStream();
+                        o = new ByteArrayOutputStream();
                         bm.compress(Bitmap.CompressFormat.JPEG, 100, o);
                         if (o != null) {
                             doTakePictureDecode(o.toByteArray(), 0);
-                            o.close();
-                            bm.recycle();
                             return;
                         }
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
+                } finally {
+                    if (o != null){
+                        try {
+                            o.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if (bm != null) bm.recycle();
                 }
             }
             showToast("不识别的图片格式");
